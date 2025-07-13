@@ -4,11 +4,11 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-black text-green-400 font-mono">
       {/* Header with Name and Title */}
-      <header className="p-4 md:p-6 border-b border-green-500/30">
-        <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-green-400">
+      <header className="p-4 md:p-4 border-b border-green-500/30">
+        <h1 className="text-md md:text-2xl lg:text-2xl font-semibold text-green-400">
           Sahil Makandar
         </h1>
-        <p className="text-green-300/80 text-sm md:text-base">
+        <p className="text-green-300/80 text-xs md:text-sm">
           Software Engineer
         </p>
       </header>
