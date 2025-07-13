@@ -1194,7 +1194,7 @@ const CliPortfolio: React.FC = () => {
             </span>
             <span className="sm:hidden">Terminal</span>
           </div>
-          <div className="text-xs sm:text-sm text-green-400">v2.4.1</div>
+          <div className="text-xs sm:text-sm text-green-400">v0.1</div>
         </div>
 
         {/* Terminal Output Area */}
