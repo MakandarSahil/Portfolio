@@ -769,7 +769,7 @@ const CliPortfolio: React.FC = () => {
                 Welcome to the Matrix, Neo... 🕶️
               </p>
               <p className="text-green-300/60 text-sm break-words">
-                The code you see is "Hello World Enter The Matrix! in binary
+                The code you see is &quot;Hello World Enter The Matrix! in binary
               </p>
             </div>
           );
