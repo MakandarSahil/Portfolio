@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useCallback, useMemo } from "react";
 import "../styles/Profile.css";
+import Image from "next/image";
 
 interface ProfileCardProps {
   avatarUrl: string;
@@ -275,7 +276,7 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
           <div className="pc-shine" />
           <div className="pc-glare" />
           <div className="pc-content pc-avatar-content">
-            <img
+            <Image
               className="avatar"
               src={avatarUrl}
               alt={`${name || "User"} avatar`}
@@ -289,7 +290,7 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
               <div className="pc-user-info">
                 <div className="pc-user-details">
                   <div className="pc-mini-avatar">
-                    <img
+                    <Image
                       src={miniAvatarUrl || avatarUrl}
                       alt={`${name || "User"} mini avatar`}
                       loading="lazy"
