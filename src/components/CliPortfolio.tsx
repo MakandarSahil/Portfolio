@@ -164,22 +164,41 @@ const CliPortfolio: React.FC = () => {
   };
 
   useEffect(() => {
-    const welcomeMessage = (
+    const isMobile = window.innerWidth < 640; // Adjust breakpoint as needed
+
+    const welcomeMessageDesktop = (
       <div className="py-1">
-        {/* Hide ASCII art on very small screens */}
         <div className="text-green-400 mb-2 hidden sm:block">
           <pre className="text-xs sm:text-sm overflow-x-auto">
             {`
- ██████╗██╗     ██╗    ██████╗  ██████╗ ██████╗ ████████╗███████╗ ██████╗ ██╗     ██╗ ██████╗ 
+██████╗██╗     ██╗    ██████╗  ██████╗ ██████╗ ████████╗███████╗ ██████╗ ██╗     ██╗ ██████╗ 
 ██╔════╝██║     ██║    ██╔══██╗██╔═══██╗██╔══██╗╚══██╔══╝██╔════╝██╔═══██╗██║     ██║██╔═══██╗
 ██║     ██║     ██║    ██████╔╝██║   ██║██████╔╝   ██║   █████╗  ██║   ██║██║     ██║██║   ██║
 ██║     ██║     ██║    ██╔═══╝ ██║   ██║██╔══██╗   ██║   ██╔══╝  ██║   ██║██║     ██║██║   ██║
-╚██████╗███████╗██║    ██║     ╚██████╔╝██║  ██║   ██║   ██║     ╚██████╔╝███████╗██║╚██████╔╝
- ╚═════╝╚══════╝╚═╝    ╚═╝      ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ 
+╚██████╗███████╗██║    ██║     ╚██████╔╝██║  ██║   ██║   ██║   ╚██████╔╝███████╗██║╚██████╔╝
+ ╚═════╝╚══════╝╚═╝    ╚═╝      ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚═╝     ╚═════╝ ╚══════╝╚═╝ ╚═════╝ 
 `}
           </pre>
         </div>
-        {/* Mobile-friendly title */}
+        <p className="text-green-400">
+          Welcome to Sahil Makandar's CLI Portfolio!
+        </p>
+        <p className="break-words">
+          Type <span className="text-green-400">'help'</span> to see available
+          commands.
+        </p>
+        <p className="text-green-300/60 text-sm sm:text-base mt-2 break-words">
+          💡 Try:{" "}
+          <span className="text-green-400">ls, pwd, whoami, neofetch</span>
+        </p>
+        <p className="text-green-300/60 text-sm sm:text-base break-words">
+          ⌨️ Shortcuts: Ctrl+C, Ctrl+L, ↑↓
+        </p>
+      </div>
+    );
+
+    const welcomeMessageMobile = (
+      <div className="py-1">
         <div className="text-green-400 mb-2 block sm:hidden">
           <h2 className="text-lg font-bold">CLI PORTFOLIO</h2>
         </div>
@@ -199,19 +218,27 @@ const CliPortfolio: React.FC = () => {
         </p>
       </div>
     );
+
+    const finalWelcomeMessage = isMobile
+      ? welcomeMessageMobile
+      : welcomeMessageDesktop;
+
     const welcomeEntryId = generateId();
     setHistory([
       {
         id: welcomeEntryId,
         type: "output",
-        value: welcomeMessage,
+        value: finalWelcomeMessage, // Use the appropriate message
         isTyping: true,
         typedValue: "",
       },
     ]);
-    setTimeout(() => {
-      typeOutput(welcomeMessage, welcomeEntryId);
-    }, 500);
+    setTimeout(
+      () => {
+        typeOutput(finalWelcomeMessage, welcomeEntryId); // Pass the appropriate message
+      },
+      isMobile ? 100 : 500
+    ); // Shorter delay for mobile, adjust as needed
   }, []);
 
   useEffect(() => {
@@ -1179,7 +1206,7 @@ const CliPortfolio: React.FC = () => {
         `}
       </style>
 
-      <div className="w-full bg-gray-800 border border-green-500 rounded-lg shadow-lg flex flex-col h-[85vh] sm:h-[80vh] md:h-[70vh] lg:h-[60vh] terminal-glow overflow-hidden">
+      <div className="w-full bg-gray-800 border border-green-500 rounded-lg shadow-lg flex flex-col h-[85vh] sm:h-[80vh] md:h-[70vh] lg:h-[70vh] terminal-glow overflow-hidden">
         {/* Terminal Header */}
         <div className="bg-gray-700 p-2 border-b border-green-500 flex items-center justify-between">
           <div className="flex space-x-2">
@@ -1194,13 +1221,14 @@ const CliPortfolio: React.FC = () => {
             </span>
             <span className="sm:hidden">Terminal</span>
           </div>
-          <div className="text-xs sm:text-sm text-green-400">v0.1</div>
+          {/* <div className="text-xs sm:text-sm text-green-400">v0.1</div> */}
+          <div className="text-xs sm:text-sm text-green-400">v0.2</div>
         </div>
 
         {/* Terminal Output Area */}
         <div
           ref={terminalRef}
-          className="flex-1 p-2 sm:p-4 overflow-y-auto text-sm sm:text-base terminal-output bg-gray-900 min-h-0"
+          className="flex-1 p-2 sm:p-4 overflow-y-auto text-sm sm:text-sm terminal-output bg-gray-900 min-h-0"
           onClick={() => inputRef.current && inputRef.current.focus()}
         >
           {history.map((entry) => (
