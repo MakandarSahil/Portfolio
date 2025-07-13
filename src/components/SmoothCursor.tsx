@@ -150,6 +150,7 @@ export function SmoothCursor({
 
         scale.set(0.95);
         setIsMoving(true);
+        console.log(isMoving);
 
         const timeout = setTimeout(() => {
           scale.set(1);

@@ -16,6 +16,8 @@ interface HistoryEntry {
   typedValue?: string | ReactNode;
 }
 
+import { ReactElement, isValidElement, Children, cloneElement } from "react";
+
 const extractTextFromReactNode = (node: ReactNode): string => {
   if (typeof node === "string" || typeof node === "number") {
     return String(node);
@@ -32,17 +34,19 @@ const extractTextFromReactNode = (node: ReactNode): string => {
   return "";
 };
 
-const typeReactNodeProgressively = (
+export const typeReactNodeProgressively = (
   node: ReactNode,
   charsToReveal: number
 ): { typedNode: ReactNode; charsConsumed: number } => {
   let charsConsumed = 0;
+
   if (typeof node === "string" || typeof node === "number") {
     const text = String(node);
     const typedText = text.substring(0, Math.min(text.length, charsToReveal));
-    charsConsumed = Math.min(text.length, charsToReveal);
+    charsConsumed = typedText.length;
     return { typedNode: typedText, charsConsumed };
   }
+
   if (Array.isArray(node)) {
     const typedChildren: ReactNode[] = [];
     for (let i = 0; i < node.length; i++) {
@@ -54,32 +58,37 @@ const typeReactNodeProgressively = (
     }
     return { typedNode: typedChildren, charsConsumed };
   }
-  if (React.isValidElement(node)) {
-    const element = node as React.ReactElement<any>;
+
+  if (isValidElement(node)) {
+    // Now TS knows `props` exists and is typed
+    const element = node as ReactElement<{ children?: ReactNode }>;
     const typedChildren: ReactNode[] = [];
+
     let childIndex = 0;
-    React.Children.forEach(element.props.children, (child) => {
-      if (child === null || child === undefined) {
-        typedChildren.push(child);
-        return;
-      }
+    const childrenArray = Children.toArray(element.props.children);
+
+    for (const child of childrenArray) {
       const { typedNode, charsConsumed: childChars } =
         typeReactNodeProgressively(child, charsToReveal - charsConsumed);
-      if (React.isValidElement(typedNode) && !typedNode.key) {
+
+      if (isValidElement(typedNode) && typedNode.key == null) {
         typedChildren.push(
-          React.cloneElement(typedNode, { key: `typed-${childIndex}` })
+          cloneElement(typedNode, { key: `typed-${childIndex}` })
         );
       } else {
         typedChildren.push(typedNode);
       }
+
       charsConsumed += childChars;
       childIndex++;
-    });
+    }
+
     return {
-      typedNode: React.cloneElement(element, element.props, ...typedChildren),
+      typedNode: cloneElement(element, element.props, ...typedChildren),
       charsConsumed,
     };
   }
+
   return { typedNode: node, charsConsumed: 0 };
 };
 
@@ -181,11 +190,12 @@ const CliPortfolio: React.FC = () => {
           </pre>
         </div>
         <p className="text-green-400">
-          Welcome to Sahil Makandar's CLI Portfolio!
+          Welcome to Sahil Makandar&apos;s CLI Portfolio! Still in development,
+          but feel check it!
         </p>
         <p className="break-words">
-          Type <span className="text-green-400">'help'</span> to see available
-          commands.
+          Type <span className="text-green-400">&apos;help&apos;</span> to see
+          available commands.
         </p>
         <p className="text-green-300/60 text-sm sm:text-base mt-2 break-words">
           💡 Try:{" "}
@@ -203,11 +213,11 @@ const CliPortfolio: React.FC = () => {
           <h2 className="text-lg font-bold">CLI PORTFOLIO</h2>
         </div>
         <p className="text-green-400">
-          Welcome to Sahil Makandar's CLI Portfolio!
+          Welcome to Sahil Makandar&apos;s CLI Portfolio!
         </p>
         <p className="break-words">
-          Type <span className="text-green-400">'help'</span> to see available
-          commands.
+          Type <span className="text-green-400">&apos;help&apos;</span> to see
+          available commands.
         </p>
         <p className="text-green-300/60 text-sm sm:text-base mt-2 break-words">
           💡 Try:{" "}
@@ -466,7 +476,7 @@ const CliPortfolio: React.FC = () => {
         if (dirName) {
           output = (
             <div className="py-1 text-green-400">
-              mkdir: created directory '{dirName}'
+              mkdir: created directory &apos;{dirName}&apos;
             </div>
           );
         } else {
@@ -759,7 +769,7 @@ const CliPortfolio: React.FC = () => {
                 Welcome to the Matrix, Neo... 🕶️
               </p>
               <p className="text-green-300/60 text-sm break-words">
-                The code you see is "Hello World Enter The Matrix!" in binary
+                The code you see is "Hello World Enter The Matrix! in binary
               </p>
             </div>
           );
@@ -798,7 +808,7 @@ const CliPortfolio: React.FC = () => {
         case "fortune":
           const fortunes = [
             "The best way to predict the future is to invent it. - Alan Kay",
-            "Code is like humor. When you have to explain it, it's bad. - Cory House",
+            "Code is like humor. When you have to explain it, it&apos;s bad. - Cory House",
             "First, solve the problem. Then, write the code. - John Johnson",
             "Experience is the name everyone gives to their mistakes. - Oscar Wilde",
             "The only way to learn a new programming language is by writing programs in it. - Dennis Ritchie",
@@ -810,7 +820,8 @@ const CliPortfolio: React.FC = () => {
             <div className="py-1">
               <p className="text-green-400 text-sm">🔮 Fortune Cookie:</p>
               <p className="text-green-300/90 italic mt-1 text-sm sm:text-base break-words">
-                "{randomFortune}"
+                &quot;
+                {randomFortune}&quot;
               </p>
             </div>
           );
@@ -834,16 +845,17 @@ const CliPortfolio: React.FC = () => {
           output = (
             <div className="py-1 text-sm sm:text-base">
               <p className="break-words mb-2">
-                Hello! I'm Sahil Makandar, a Software Engineer passionate about
-                building interactive and user-friendly applications.
+                Hello! I&apos;m Sahil Makandar, a Software Engineer passionate
+                about building interactive and user-friendly applications.
               </p>
               <p className="break-words mb-2">
                 I specialize in front-end development with a strong focus on
                 React, Next.js, and modern web technologies.
               </p>
               <p className="break-words">
-                When I'm not coding, you can find me contributing to open-source
-                projects, learning new technologies, or exploring the outdoors.
+                When I&apos;m not coding, you can find me contributing to
+                open-source projects, learning new technologies, or exploring
+                the outdoors.
               </p>
             </div>
           );
@@ -887,8 +899,8 @@ const CliPortfolio: React.FC = () => {
                 ))}
               </div>
               <p className="mt-2 text-sm">
-                Type <span className="text-green-400">'help'</span> for more
-                commands.
+                Type <span className="text-green-400">&apos;help&apos;</span>{" "}
+                for more commands.
               </p>
             </div>
           );
@@ -1131,8 +1143,10 @@ const CliPortfolio: React.FC = () => {
         default:
           output = (
             <div className="text-sm sm:text-base">
-              <p className="break-words">Command not found: {trimmedCommand}</p>
-              <p>Type 'help' for a list of available commands.</p>
+              <p className="break-words text-red-500">
+                Command not found: {trimmedCommand}
+              </p>
+              <p>Type &apos;help&apos; for a list of available commands.</p>
             </div>
           );
       }
@@ -1313,7 +1327,7 @@ const CliPortfolio: React.FC = () => {
       {/* System info footer */}
       <div className="mt-2 sm:mt-4 text-gray-500 text-xs sm:text-sm text-center px-2">
         <span className="animate-pulse">●</span> Connected to
-        sahil-makandar-terminal v2.4.1 • Type 'help' for commands
+        sahil-makandar-terminal v2.4.1 • Type &apos;help&apos; for commands
       </div>
     </div>
   );
