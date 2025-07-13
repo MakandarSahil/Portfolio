@@ -1,4 +1,4 @@
-"use client"; // This directive marks the component as a Client Component
+"use client";
 
 import React, {
   useState,
@@ -9,17 +9,14 @@ import React, {
   ReactNode,
 } from "react";
 
-// Define the type for a history entry
 interface HistoryEntry {
-  id: string; // Add unique ID for each entry
+  id: string;
   type: "input" | "output";
   value: string | ReactNode;
-  isTyping?: boolean; // Indicates if the output is currently being typed
-  typedValue?: string | ReactNode; // The value as it's being typed
+  isTyping?: boolean;
+  typedValue?: string | ReactNode;
 }
 
-// Helper function to extract plain text from a ReactNode
-// This is used to get the total character count for the typing animation duration.
 const extractTextFromReactNode = (node: ReactNode): string => {
   if (typeof node === "string" || typeof node === "number") {
     return String(node);
@@ -36,16 +33,12 @@ const extractTextFromReactNode = (node: ReactNode): string => {
   return "";
 };
 
-// Recursive function to type out text within a ReactNode structure.
-// It returns the partially typed ReactNode and the number of characters consumed
-// from the total 'charsToReveal' budget.
 const typeReactNodeProgressively = (
   node: ReactNode,
   charsToReveal: number
 ): { typedNode: ReactNode; charsConsumed: number } => {
   let charsConsumed = 0;
 
-  // If it's a string or number, substring it based on charsToReveal
   if (typeof node === "string" || typeof node === "number") {
     const text = String(node);
     const typedText = text.substring(0, Math.min(text.length, charsToReveal));
@@ -53,7 +46,6 @@ const typeReactNodeProgressively = (
     return { typedNode: typedText, charsConsumed };
   }
 
-  // If it's an array of children, recursively process each child
   if (Array.isArray(node)) {
     const typedChildren: ReactNode[] = [];
     for (let i = 0; i < node.length; i++) {
@@ -62,12 +54,11 @@ const typeReactNodeProgressively = (
       const { typedNode, charsConsumed: childChars } =
         typeReactNodeProgressively(child, charsToReveal - charsConsumed);
       typedChildren.push(typedNode);
-      charsConsumed += childChars; // Accumulate consumed characters
+      charsConsumed += childChars;
     }
     return { typedNode: typedChildren, charsConsumed };
   }
 
-  // If it's a valid React element, clone it and recursively process its children
   if (React.isValidElement(node)) {
     const element = node as React.ReactElement<any>;
     const typedChildren: ReactNode[] = [];
@@ -75,14 +66,12 @@ const typeReactNodeProgressively = (
 
     React.Children.forEach(element.props.children, (child) => {
       if (child === null || child === undefined) {
-        typedChildren.push(child); // Keep null/undefined children as is
+        typedChildren.push(child);
         return;
       }
-      // Pass remaining charsToReveal to the child
       const { typedNode, charsConsumed: childChars } =
         typeReactNodeProgressively(child, charsToReveal - charsConsumed);
 
-      // If the child is a React element and doesn't have a key, add one
       if (React.isValidElement(typedNode) && !typedNode.key) {
         typedChildren.push(
           React.cloneElement(typedNode, { key: `typed-${childIndex}` })
@@ -91,18 +80,14 @@ const typeReactNodeProgressively = (
         typedChildren.push(typedNode);
       }
 
-      charsConsumed += childChars; // Accumulate consumed characters
+      charsConsumed += childChars;
       childIndex++;
     });
-
-    // Clone the element, passing its original props and the new typed children
     return {
       typedNode: React.cloneElement(element, element.props, ...typedChildren),
       charsConsumed,
     };
   }
-
-  // For any other type of node (e.g., boolean, symbol), return as is
   return { typedNode: node, charsConsumed: 0 };
 };
 
@@ -115,35 +100,30 @@ const CliPortfolio: React.FC = () => {
   const [command, setCommand] = useState<string>("");
   const terminalRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const [isProcessing, setIsProcessing] = useState(false); // State to prevent multiple commands while processing
-  const [currentTime, setCurrentTime] = useState(""); // State for client-side time
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [currentTime, setCurrentTime] = useState("");
 
-  // Update current time every second for the status bar
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date().toLocaleTimeString());
     }, 1000);
-    return () => clearInterval(timer); // Cleanup on component unmount
+    return () => clearInterval(timer);
   }, []);
 
-  // Function to simulate typing out content (string or ReactNode) character by character
   const typeOutput = (content: string | ReactNode, entryId: string) => {
-    // Get the total plain text length to determine the animation duration
     const fullTextLength =
       typeof content === "string"
         ? content.length
         : extractTextFromReactNode(content).length;
-    let currentCharsRevealed = 0; // Tracks how many characters of the *full plain text* have been revealed
+    let currentCharsRevealed = 0;
 
     const animateTyping = () => {
       if (currentCharsRevealed <= fullTextLength) {
         let typedContent: string | ReactNode;
 
         if (typeof content === "string") {
-          // If the original content is a string, simply substring it
           typedContent = content.substring(0, currentCharsRevealed);
         } else {
-          // If the original content is a ReactNode, use the recursive helper to progressively reveal it
           const { typedNode } = typeReactNodeProgressively(
             content,
             currentCharsRevealed
@@ -151,7 +131,6 @@ const CliPortfolio: React.FC = () => {
           typedContent = typedNode;
         }
 
-        // Update the history entry with the partially typed content and typing status
         setHistory((prev) => {
           const newHistory = [...prev];
           const entryIndex = newHistory.findIndex(
@@ -167,11 +146,9 @@ const CliPortfolio: React.FC = () => {
           return newHistory;
         });
 
-        currentCharsRevealed++; // Move to the next character
-        // Schedule the next animation frame with a random delay for natural feel
+        currentCharsRevealed++;
         setTimeout(animateTyping, Math.random() * 20 + 10);
       } else {
-        // Typing is complete, ensure the full original content is displayed and release lock
         setHistory((prev) => {
           const newHistory = [...prev];
           const entryIndex = newHistory.findIndex(
@@ -180,19 +157,17 @@ const CliPortfolio: React.FC = () => {
           if (entryIndex !== -1 && newHistory[entryIndex].type === "output") {
             newHistory[entryIndex] = {
               ...newHistory[entryIndex],
-              typedValue: content, // Set to the full original content (ReactNode or string)
+              typedValue: content,
               isTyping: false,
             };
           }
           return newHistory;
         });
-        setIsProcessing(false); // Release the processing lock
+        setIsProcessing(false);
       }
     };
-    animateTyping(); // Start the typing animation
+    animateTyping();
   };
-
-  // Initial welcome message with typing effect
   useEffect(() => {
     const welcomeMessage = (
       <div className="py-1">
@@ -207,39 +182,33 @@ const CliPortfolio: React.FC = () => {
     );
 
     const welcomeEntryId = generateId();
-
-    // Initialize history with a placeholder for the welcome message
     setHistory([
       {
         id: welcomeEntryId,
         type: "output",
         value: welcomeMessage,
-        isTyping: true, // Start with typing true for the welcome message
-        typedValue: "", // Initially empty for typing effect
+        isTyping: true,
+        typedValue: "",
       },
     ]);
 
-    // Start typing the welcome message after a short delay
     setTimeout(() => {
-      typeOutput(welcomeMessage, welcomeEntryId); // Call typeOutput for the first entry
-    }, 500); // Small delay before typing starts
-  }, []); // Empty dependency array ensures this runs only once on mount
+      typeOutput(welcomeMessage, welcomeEntryId);
+    }, 500);
+  }, []);
 
-  // Effect to scroll to bottom whenever history changes
   useEffect(() => {
     if (terminalRef.current) {
       terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
     }
-  }, [history]); // Scroll whenever history changes
+  }, [history]);
 
-  // Effect to manage input focus after processing completes (for mobile keyboard behavior)
   useEffect(() => {
     if (!isProcessing && inputRef.current) {
       inputRef.current.focus();
     }
-  }, [isProcessing]); // Re-focus when processing stops
+  }, [isProcessing]);
 
-  // Handles command submission when Enter is pressed
   const handleCommandSubmit = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !isProcessing) {
       const trimmedCommand = command.trim();
@@ -264,16 +233,15 @@ const CliPortfolio: React.FC = () => {
         {
           id: outputEntryId,
           type: "output",
-          value: "", // Placeholder for the output that will be typed
-          isTyping: true, // Mark as typing
-          typedValue: "", // Start with empty typed value
+          value: "",
+          isTyping: true,
+          typedValue: "",
         },
       ];
 
       setHistory(newHistory);
-      setCommand(""); // Clear the input field
+      setCommand("");
 
-      // Determine the output based on the command
       let output: string | ReactNode = "";
 
       switch (trimmedCommand.toLowerCase()) {
@@ -566,7 +534,7 @@ const CliPortfolio: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-200 font-mono flex flex-col items-center justify-center p-4 antialiased">
+    <div className="text-gray-200 font-mono flex flex-col items-center justify-center p-4 antialiased">
       <style>
         {`
           /* Custom scrollbar for Webkit browsers */
@@ -622,7 +590,7 @@ const CliPortfolio: React.FC = () => {
           }
         `}
       </style>
-      <div className="w-full max-w-4xl bg-gray-800 border border-green-500 rounded-lg shadow-lg overflow-hidden flex flex-col h-[80vh] md:h-[70vh] lg:h-[60vh]">
+      <div className="w-full bg-gray-800 border border-green-500 rounded-lg shadow-lg overflow-hidden flex flex-col h-[80vh] md:h-[70vh] lg:h-[60vh]">
         {/* Terminal Header */}
         <div className="bg-gray-700 p-2 border-b border-green-500 flex items-center justify-between">
           <div className="flex space-x-2">
